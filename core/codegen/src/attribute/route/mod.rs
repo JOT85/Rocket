@@ -69,8 +69,8 @@ fn query_decls(route: &Route) -> Option<TokenStream> {
             let init = quote_spanned!(ty.span() => #ty::init(#_form::Options::Lenient));
             let finalize = quote_spanned!(ty.span() => #ty::finalize(#ident));
             let push = match guard.trailing {
-                true => quote_spanned!(ty.span() => #ty::push_value(&mut #ident, _f)),
-                _ => quote_spanned!(ty.span() => #ty::push_value(&mut #ident, _f.shift())),
+                true => quote_spanned!(Span::call_site() => #ty::push_value(&mut #ident, _f)),
+                _ => quote_spanned!(Span::call_site() => #ty::push_value(&mut #ident, _f.shift())),
             };
 
             (name, matcher, ident, init, push, finalize)
@@ -168,7 +168,7 @@ fn param_guard_decl(guard: &Guard) -> TokenStream {
     );
 
     // Returned when a dynamic parameter fails to parse.
-    let parse_error = quote!({
+    let parse_error = quote_spanned!(ty.span() => {
         ::rocket::trace::info!(
             name: "forward",
             target: concat!("rocket::codegen::route::", module_path!()),
